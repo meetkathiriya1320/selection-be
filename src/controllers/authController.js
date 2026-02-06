@@ -106,6 +106,10 @@ export const login = async (req, res) => {
             return RESPONSE.error(res, AUTH_MESSAGES.INVALID_CREDENTIALS, 400);
         }
 
+        if (!user.isVerified) {
+            return RESPONSE.error(res, "Please verify your email first", 400);
+        }
+
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
