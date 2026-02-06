@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 // Ensure upload directory exists
-const uploadDir = 'public/uploads';
+const uploadDir = 'public/upload';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

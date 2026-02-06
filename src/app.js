@@ -10,7 +10,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('public/uploads'));
+app.use('/upload', express.static('public/upload'));
 
 app.use('/api/auth', authRouter);
 app.use('/api/selections', selectionsRouter);
