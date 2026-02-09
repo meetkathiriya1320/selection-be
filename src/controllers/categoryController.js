@@ -1,10 +1,12 @@
 import Category from '../models/Category.js';
 import { RESPONSE } from '../helpers/response.js';
+import { transformImageUrls } from '../helpers/imageHelper.js';
 
 export const getCategories = async (req, res) => {
     try {
         const categories = await Category.find({ isActive: true });
-        RESPONSE.success(res, 200, categories);
+        const transformedCategories = categories.map(transformImageUrls);
+        RESPONSE.success(res, 200, transformedCategories);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -14,7 +16,7 @@ export const createCategory = async (req, res) => {
     try {
         const category = new Category(req.body);
         const newCategory = await category.save();
-        RESPONSE.success(res, 201, newCategory);
+        RESPONSE.success(res, 201, transformImageUrls(newCategory));
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -33,7 +35,7 @@ export const updateCategory = async (req, res) => {
     try {
         const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!category) return RESPONSE.error(res, 9999, 404);
-        RESPONSE.success(res, 200, category);
+        RESPONSE.success(res, 200, transformImageUrls(category));
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }

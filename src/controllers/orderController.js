@@ -115,6 +115,8 @@ export const getAllOrders = async (req, res) => {
     }
 };
 
+import { transformImageUrls } from '../helpers/imageHelper.js';
+
 export const getOrderDetails = async (req, res) => {
     try {
         const { id } = req.params;
@@ -127,8 +129,9 @@ export const getOrderDetails = async (req, res) => {
         }
 
         const items = await SelectionOrder.find({ order_id: id }).populate('selection_id');
+        const transformedItems = items.map(transformImageUrls);
 
-        RESPONSE.success(res, 200, { order, items });
+        RESPONSE.success(res, 200, { order, items: transformedItems });
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }

@@ -2,6 +2,7 @@ import SelectionOrder from '../models/SelectionOrder.js';
 import SelectionDetails from '../models/SelectionDetails.js';
 import { RESPONSE } from '../helpers/response.js';
 import { get_message } from '../helpers/messages.js';
+import { transformImageUrls } from '../helpers/imageHelper.js';
 
 export const getSelectionOrders = async (req, res) => {
     try {
@@ -10,7 +11,8 @@ export const getSelectionOrders = async (req, res) => {
             .populate('selection_id')
             .sort({ createdAt: -1 });
 
-        RESPONSE.success(res, 2101, orders);
+        const transformedOrders = orders.map(transformImageUrls);
+        RESPONSE.success(res, 2101, transformedOrders);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -19,7 +21,8 @@ export const getSelectionOrders = async (req, res) => {
 export const getMyOrders = async (req, res) => {
     try {
         const orders = await SelectionOrder.find({ user_id: req.user._id }).populate('selection_id');
-        RESPONSE.success(res, 2101, orders);
+        const transformedOrders = orders.map(transformImageUrls);
+        RESPONSE.success(res, 2101, transformedOrders);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -39,7 +42,7 @@ export const createSelectionOrder = async (req, res) => {
     });
     try {
         const newOrder = await order.save();
-        RESPONSE.success(res, 2102, newOrder, 201);
+        RESPONSE.success(res, 2102, transformImageUrls(newOrder), 201);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -62,7 +65,7 @@ export const cancelOrder = async (req, res) => {
 
         order.status = 'cancelled';
         await order.save();
-        RESPONSE.success(res, 200, order);
+        RESPONSE.success(res, 200, transformImageUrls(order));
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }
@@ -139,7 +142,7 @@ export const updateStatus = async (req, res) => {
             return RESPONSE.error(res, 404, "Order not found");
         }
 
-        RESPONSE.success(res, 200, order);
+        RESPONSE.success(res, 200, transformImageUrls(order));
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }

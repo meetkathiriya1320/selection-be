@@ -1,10 +1,12 @@
 import Banner from '../models/Banner.js';
 import { RESPONSE } from '../helpers/response.js';
+import { transformImageUrls } from '../helpers/imageHelper.js';
 
 export const getBanners = async (req, res) => {
     try {
         const banners = await Banner.find({ isActive: true });
-        RESPONSE.success(res, 200, banners);
+        const transformedBanners = banners.map(transformImageUrls);
+        RESPONSE.success(res, 200, transformedBanners);
     } catch (error) {
         RESPONSE.error(res, 500, error.message);
     }
@@ -14,7 +16,7 @@ export const createBanner = async (req, res) => {
     try {
         const banner = new Banner(req.body);
         await banner.save();
-        RESPONSE.success(res, 201, banner);
+        RESPONSE.success(res, 201, transformImageUrls(banner));
     } catch (error) {
         RESPONSE.error(res, 500, error.message);
     }
@@ -24,7 +26,7 @@ export const updateBanner = async (req, res) => {
     try {
         const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!banner) return RESPONSE.error(res, 404, 'Banner not found');
-        RESPONSE.success(res, 200, banner);
+        RESPONSE.success(res, 200, transformImageUrls(banner));
     } catch (error) {
         RESPONSE.error(res, 500, error.message);
     }

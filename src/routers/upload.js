@@ -11,8 +11,7 @@ router.post('/', upload.single('file'), (req, res) => {
         }
 
         // Return relative path suitable for frontend
-        // Assuming server is hosting public folder at root or /uploads
-        const fileUrl = `${req.protocol}://${req.get('host')}/upload/${req.file.filename}`;
+        const fileUrl = `/upload/${req.file.filename}`;
 
         RESPONSE.success(res, 200, { url: fileUrl });
     } catch (error) {
