@@ -4,6 +4,24 @@ import { RESPONSE } from '../helpers/response.js';
 import { get_message } from '../helpers/messages.js';
 import { transformImageUrls } from '../helpers/imageHelper.js';
 
+import Order from '../models/Order.js';
+
+const updateParentOrder = async (orderId) => {
+    try {
+        const items = await SelectionOrder.find({ order_id: orderId });
+        const total_amount = items.reduce((sum, item) => sum + item.pay, 0);
+        const total_deposit = items.reduce((sum, item) => sum + item.deposit, 0);
+
+        await Order.findByIdAndUpdate(orderId, {
+            total_amount,
+            total_deposit,
+            items_count: items.length
+        });
+    } catch (error) {
+        console.error("Failed to update parent order totals:", error);
+    }
+};
+
 export const getSelectionOrders = async (req, res) => {
     try {
         const orders = await SelectionOrder.find()
@@ -140,6 +158,62 @@ export const updateStatus = async (req, res) => {
 
         if (!order) {
             return RESPONSE.error(res, 404, "Order not found");
+        }
+
+        RESPONSE.success(res, 200, transformImageUrls(order));
+    } catch (error) {
+        RESPONSE.error(res, 9999, 500, error);
+    }
+};
+
+export const deleteSelectionOrder = async (req, res) => {
+    try {
+        const order = await SelectionOrder.findByIdAndDelete(req.params.id);
+        if (!order) {
+            return RESPONSE.error(res, 404, "Order not found");
+        }
+
+        // Update parent order totals
+        if (order.order_id) {
+            await updateParentOrder(order.order_id);
+        }
+
+        RESPONSE.success(res, 200, "Order deleted successfully");
+    } catch (error) {
+        RESPONSE.error(res, 9999, 500, error);
+    }
+};
+
+export const updateSelectionOrder = async (req, res) => {
+    try {
+        const {
+            selectedTopSize,
+            selectedBottomSize,
+            selectedColor,
+            deliver_date,
+            receive_date
+        } = req.body;
+
+        const updates = {};
+        if (selectedTopSize !== undefined) updates.selectedTopSize = selectedTopSize;
+        if (selectedBottomSize !== undefined) updates.selectedBottomSize = selectedBottomSize;
+        if (selectedColor !== undefined) updates.selectedColor = selectedColor;
+        if (deliver_date !== undefined) updates.deliver_date = deliver_date;
+        if (receive_date !== undefined) updates.receive_date = receive_date;
+
+        const order = await SelectionOrder.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true }
+        );
+
+        if (!order) {
+            return RESPONSE.error(res, 404, "Order not found");
+        }
+
+        // Update parent order totals
+        if (order.order_id) {
+            await updateParentOrder(order.order_id);
         }
 
         RESPONSE.success(res, 200, transformImageUrls(order));

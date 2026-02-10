@@ -65,7 +65,7 @@ export const createOrder = async (req, res) => {
                 console.log(item, "item")
                 return errorResponse(res, `Item "${itemName.name}" is already booked for these dates.`, null, 400);
             }
-        } z
+        }
 
         // --- CONFLICT CHECK END ---
 
