@@ -54,14 +54,36 @@ export const createSelectionOrder = async (req, res) => {
         userId = req.body.user_id;
     }
 
-    const order = new SelectionOrder({
-        ...req.body,
-        user_id: userId
-    });
     try {
+        let orderId = req.body.order_id;
+
+        // If no parent order ID is provided, create a new Parent Order
+        if (!orderId) {
+            const newParentOrder = new Order({
+                user_id: userId,
+                total_amount: 0, // Will be updated by updateParentOrder
+                total_deposit: 0, // Will be updated by updateParentOrder
+                status: 'pending',
+                items_count: 0 // Will be updated by updateParentOrder
+            });
+            const savedParentOrder = await newParentOrder.save();
+            orderId = savedParentOrder._id;
+        }
+
+        const order = new SelectionOrder({
+            ...req.body,
+            user_id: userId,
+            order_id: orderId
+        });
+
         const newOrder = await order.save();
+
+        // Update parent order totals to include this new item
+        await updateParentOrder(orderId);
+
         RESPONSE.success(res, 2102, transformImageUrls(newOrder), 201);
     } catch (error) {
+        console.error("Create Selection Order Error:", error);
         RESPONSE.error(res, 9999, 500, error);
     }
 };

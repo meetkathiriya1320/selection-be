@@ -4,9 +4,10 @@ export const toImageUrl = (path) => {
 
     // If path is already a full URL
     if (path.startsWith('http')) {
-        // If it points to localhost:5173 (frontend), serve it from backend
+        // If it points to localhost:5173 (frontend), serve it from backend using BASE_URL
         if (path.includes('localhost:5173')) {
-            return path.replace('localhost:5173', 'localhost:5000');
+            const relativePath = path.split('localhost:5173')[1];
+            return `${baseUrl}${relativePath}`;
         }
         // If it already points to correct backend or external, leave it
         return path;

@@ -5,7 +5,24 @@ import { transformImageUrls } from '../helpers/imageHelper.js';
 
 export const getSelections = async (req, res) => {
     try {
-        const query = req.query; // Simple filtering by query params e.g. ?category=Wedding
+        const { category, search } = req.query;
+        let query = {};
+
+        if (category && category !== 'All') {
+            query.category = category;
+        }
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { category: { $regex: search, $options: 'i' } },
+                { SKU: { $regex: search, $options: 'i' } },
+                { colors: { $regex: search, $options: 'i' } },
+                { up_color: { $regex: search, $options: 'i' } },
+                { dawn_color: { $regex: search, $options: 'i' } }
+            ];
+        }
+
         const selections = await Selection.find(query);
         const transformedSelections = selections.map(transformImageUrls);
         RESPONSE.success(res, 2001, transformedSelections);
